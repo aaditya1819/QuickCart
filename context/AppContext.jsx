@@ -1,7 +1,8 @@
 'use client'
-import { productsDummyData, userDummyData } from "@/assets/assets";
+import { productsDummyData, orderDummyData } from "@/assets/assets";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 export const AppContext = createContext();
 
@@ -13,19 +14,26 @@ export const AppContextProvider = (props) => {
 
     const currency = process.env.NEXT_PUBLIC_CURRENCY
     const router = useRouter()
+    const { user } = useUser();
 
     const [products, setProducts] = useState([])
-    const [userData, setUserData] = useState(false)
-    const [isSeller, setIsSeller] = useState(true)
+    const [orders, setOrders] = useState([])
+    const [isSeller, setIsSeller] = useState(false)
     const [cartItems, setCartItems] = useState({})
 
     const fetchProductData = async () => {
         setProducts(productsDummyData)
     }
 
-    const fetchUserData = async () => {
-        setUserData(userDummyData)
+    const fetchOrders = async () => {
+        setOrders(orderDummyData)
     }
+
+    useEffect(() => {
+        if (user) {
+            setIsSeller(user.publicMetadata.isSeller || false)
+        }
+    }, [user])
 
     const addToCart = async (itemId) => {
 
@@ -66,29 +74,33 @@ export const AppContextProvider = (props) => {
         let totalAmount = 0;
         for (const items in cartItems) {
             let itemInfo = products.find((product) => product._id === items);
-            if (cartItems[items] > 0) {
+            if (cartItems[items] > 0 && itemInfo) {
                 totalAmount += itemInfo.offerPrice * cartItems[items];
             }
         }
         return Math.floor(totalAmount * 100) / 100;
     }
 
-    useEffect(() => {
-        fetchProductData()
-    }, [])
+    const placeOrder = (orderData) => {
+        const newOrder = { ...orderData, date: new Date() };
+        setOrders(prevOrders => [newOrder, ...prevOrders]);
+        setCartItems({});
+    };
 
     useEffect(() => {
-        fetchUserData()
+        fetchProductData()
+        fetchOrders()
     }, [])
 
     const value = {
         currency, router,
         isSeller, setIsSeller,
-        userData, fetchUserData,
+        user,
         products, fetchProductData,
         cartItems, setCartItems,
         addToCart, updateCartQuantity,
-        getCartCount, getCartAmount
+        getCartCount, getCartAmount,
+        orders, placeOrder
     }
 
     return (

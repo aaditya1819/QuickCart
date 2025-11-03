@@ -9,7 +9,7 @@ import { useParams } from "next/navigation";
 import Loading from "@/components/Loading";
 import { useAppContext } from "@/context/AppContext";
 import React from "react";
-
+const USD_TO_INR = 82;
 const Product = () => {
 
     const { id } = useParams();
@@ -84,12 +84,18 @@ const Product = () => {
                     <p className="text-gray-600 mt-3">
                         {productData.description}
                     </p>
+                    // 1 USD = 83 INR (approx; you can adjust anytime)
+const USD_TO_INR = 83;
+
                     <p className="text-3xl font-medium mt-6">
-                        ${productData.offerPrice}
+                        ₹{Math.round(productData.offerPrice * USD_TO_INR).toLocaleString("en-IN")}
                         <span className="text-base font-normal text-gray-800/60 line-through ml-2">
-                            ${productData.price}
+                            ₹{Math.round(productData.price * USD_TO_INR).toLocaleString("en-IN")}
                         </span>
                     </p>
+
+
+
                     <hr className="bg-gray-600 my-6" />
                     <div className="overflow-x-auto">
                         <table className="table-auto border-collapse w-full max-w-72">

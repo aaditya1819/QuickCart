@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from "react";
-import { assets, orderDummyData } from "@/assets/assets";
+import { assets } from "@/assets/assets";
 import Image from "next/image";
 import { useAppContext } from "@/context/AppContext";
 import Footer from "@/components/Footer";
@@ -9,19 +9,14 @@ import Loading from "@/components/Loading";
 
 const MyOrders = () => {
 
-    const { currency } = useAppContext();
-
-    const [orders, setOrders] = useState([]);
+    const { currency, orders } = useAppContext();
     const [loading, setLoading] = useState(true);
 
-    const fetchOrders = async () => {
-        setOrders(orderDummyData)
-        setLoading(false);
-    }
-
     useEffect(() => {
-        fetchOrders();
-    }, []);
+        if (orders) {
+            setLoading(false);
+        }
+    }, [orders]);
 
     return (
         <>
@@ -42,7 +37,7 @@ const MyOrders = () => {
                                         <span className="font-medium text-base">
                                             {order.items.map((item) => item.product.name + ` x ${item.quantity}`).join(", ")}
                                         </span>
-                                        <span>Items : {order.items.length}</span>
+                                        <span>Items : {order.items.reduce((sum, item) => sum + item.quantity, 0)}</span>
                                     </p>
                                 </div>
                                 <div>
@@ -56,7 +51,7 @@ const MyOrders = () => {
                                         <span>{order.address.phoneNumber}</span>
                                     </p>
                                 </div>
-                                <p className="font-medium my-auto">{currency}{order.amount}</p>
+                                <p className="font-medium my-auto">{currency}{Math.floor(order.amount * 82)}</p>
                                 <div>
                                     <p className="flex flex-col">
                                         <span>Method : COD</span>

@@ -1,12 +1,16 @@
+
 import { addressDummyData } from "@/assets/assets";
 import { useAppContext } from "@/context/AppContext";
 import React, { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 
 const OrderSummary = () => {
 
-  const { currency, router, getCartCount, getCartAmount } = useAppContext()
+  const { currency, router, getCartCount, getCartAmount, cartItems, products, placeOrder } = useAppContext()
+  const { user, isSignedIn } = useUser();
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [email, setEmail] = useState('');
 
   const [userAddresses, setUserAddresses] = useState([]);
 
@@ -21,11 +25,39 @@ const OrderSummary = () => {
 
   const createOrder = async () => {
 
-  }
+    if (!isSignedIn) {
+        router.push('/sign-in');
+        return;
+    }
+
+    if (!selectedAddress) {
+        alert("Please select a shipping address.");
+        return;
+    }
+
+    const orderItems = Object.keys(cartItems).map(itemId => {
+        const product = products.find(p => p._id === itemId);
+        return { product: { name: product.name }, quantity: cartItems[itemId] };
+    });
+
+    const orderData = {
+        items: orderItems,
+        address: selectedAddress,
+        amount: getCartAmount(),
+    };
+
+    placeOrder(orderData);
+    router.push("/order-placed");
+
+  };
+
 
   useEffect(() => {
     fetchUserAddresses();
-  }, [])
+    if (user && user.primaryEmailAddress) {
+        setEmail(user.primaryEmailAddress.emailAddress);
+    }
+}, [user]);
 
   return (
     <div className="w-full md:w-96 bg-gray-500/5 p-5">
@@ -79,6 +111,21 @@ const OrderSummary = () => {
 
         <div>
           <label className="text-base font-medium uppercase text-gray-600 block mb-2">
+            Email Address
+          </label>
+          <div className="flex flex-col items-start gap-3">
+            <input
+              type="text"
+              placeholder="Enter your email"
+              className="flex-grow w-full outline-none p-2.5 text-gray-600 border"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="text-base font-medium uppercase text-gray-600 block mb-2">
             Promo Code
           </label>
           <div className="flex flex-col items-start gap-3">
@@ -98,7 +145,7 @@ const OrderSummary = () => {
         <div className="space-y-4">
           <div className="flex justify-between text-base font-medium">
             <p className="uppercase text-gray-600">Items {getCartCount()}</p>
-            <p className="text-gray-800">{currency}{getCartAmount()}</p>
+            <p className="text-gray-800">₹{Math.floor(getCartAmount() * 82)}</p>
           </div>
           <div className="flex justify-between">
             <p className="text-gray-600">Shipping Fee</p>
@@ -106,11 +153,11 @@ const OrderSummary = () => {
           </div>
           <div className="flex justify-between">
             <p className="text-gray-600">Tax (2%)</p>
-            <p className="font-medium text-gray-800">{currency}{Math.floor(getCartAmount() * 0.02)}</p>
+            <p className="font-medium text-gray-800">₹{Math.floor(getCartAmount() * 0.02 * 82)}</p>
           </div>
           <div className="flex justify-between text-lg md:text-xl font-medium border-t pt-3">
             <p>Total</p>
-            <p>{currency}{getCartAmount() + Math.floor(getCartAmount() * 0.02)}</p>
+            <p>₹{Math.floor((getCartAmount() + getCartAmount() * 0.02) * 82)}</p>
           </div>
         </div>
       </div>

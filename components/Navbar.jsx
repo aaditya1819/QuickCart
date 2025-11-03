@@ -1,9 +1,12 @@
-"use client"
 import React from "react";
-import { assets} from "@/assets/assets";
+import { assets } from "@/assets/assets";
 import Link from "next/link"
 import { useAppContext } from "@/context/AppContext";
 import Image from "next/image";
+import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/nextjs';
+import SafeHydrate from "./SafeHydrate";
+import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react"; // icon library (optional but nice)
 
 const Navbar = () => {
 
@@ -24,10 +27,16 @@ const Navbar = () => {
         <Link href="/all-products" className="hover:text-gray-900 transition">
           Shop
         </Link>
-        <Link href="/" className="hover:text-gray-900 transition">
+        <Link href="/chat" className="hover:text-gray-900 transition">
+           Chat
+        </Link>
+        <Link href="/seller" className="hover:text-gray-900 transition">
+          Admin
+        </Link>
+        <Link href="/about" className="hover:text-gray-900 transition">
           About Us
         </Link>
-        <Link href="/" className="hover:text-gray-900 transition">
+        <Link href="/contact" className="hover:text-gray-900 transition">
           Contact
         </Link>
 
@@ -37,18 +46,35 @@ const Navbar = () => {
 
       <ul className="hidden md:flex items-center gap-4 ">
         <Image className="w-4 h-4" src={assets.search_icon} alt="search icon" />
-        <button className="flex items-center gap-2 hover:text-gray-900 transition">
-          <Image src={assets.user_icon} alt="user icon" />
-          Account
-        </button>
+        <SafeHydrate>
+          <SignedOut>
+            <SignInButton>
+              <button className="flex items-center gap-2 hover:text-gray-900 transition">
+                <Image src={assets.user_icon} alt="user icon" />
+                Account
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </SafeHydrate>
       </ul>
 
       <div className="flex items-center md:hidden gap-3">
         {isSeller && <button onClick={() => router.push('/seller')} className="text-xs border px-4 py-1.5 rounded-full">Seller Dashboard</button>}
-        <button className="flex items-center gap-2 hover:text-gray-900 transition">
-          <Image src={assets.user_icon} alt="user icon" />
-          Account
-        </button>
+        <SafeHydrate>
+          <SignedOut>
+              <SignInButton>
+                <button className="flex items-center gap-2 hover:text-gray-900 transition">
+                  <Image src={assets.user_icon} alt="user icon" />
+                </button>
+              </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </SafeHydrate>
       </div>
     </nav>
   );
